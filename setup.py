@@ -18,17 +18,12 @@
 import os
 from setuptools import setup, find_packages
 
-with open('VERSION', 'r') as f:
-    version = f.read().strip()
-    if version.endswith("dev"):
-        version = version[:-3]
-
 with open("requirements.txt", "r") as f:
     install_requires = f.read().splitlines()
 
 setup(
     name='nvidia-pyprof',
-    version=version,
+    version=3.11,
     packages=find_packages(),
     author="Aditya Agrawal,Marek Kolodziej",
     author_email="aditya.iitb@gmail.com,mkolod@gmail.com",
@@ -36,7 +31,7 @@ setup(
     maintainer_email="aditya.iitb@gmail.com",
     url="https://github.com/adityaiitb/PyProf",
     download_url="https://github.com/adityaiitb/PyProf",
-    license="BSD 3-Clause License",
+    license="Apache License, Version 2.0",
     description='NVIDIA Pytorch Profiler',
     classifiers=[
             'Development Status :: 5 - Production/Stable',
