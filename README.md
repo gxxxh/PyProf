@@ -1,4 +1,3 @@
-..
  # Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,23 +12,10 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
 
-|License|
+[![License](https://img.shields.io/badge/License-Apache2-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 PyProf - PyTorch Profiling tool
 ===============================
-
-    **ANNOUNCEMENT:** 
-    On June 30th 2021, NVIDIA will no longer make contributions to the PyProf repository.
-    
-    To profile models in PyTorch, please use `NVIDIA Deep Learning Profiler (DLProf) <https://docs.nvidia.com/deeplearning/frameworks/dlprof-user-guide/>`_
-    
-    DLProf can help data scientists, engineers, and researchers understand and improve performance of their models by analyzing text reports or visualizing the reports in a web browser with the DLProf Viewer
-    
-    DLProf is available on NGC or as a python PIP wheel installation.
-    
-    To look for continued development on PyProf, please use https://github.com/adityaiitb/PyProf
-
-.. overview-begin-marker-do-not-remove
 
 PyProf is a tool that profiles and analyzes the GPU performance of PyTorch
 models. PyProf aggregates kernel performance from `Nsight Systems
@@ -57,42 +43,23 @@ following additional features:
  
 * Correlate the line in the user's code that launched a particular kernel (program trace).
 
-.. overview-end-marker-do-not-remove
+Installation Instructions
+-------------------------
 
-The current release of PyProf is 3.10.0 and is available in the 21.04 release of
-the PyTorch container on `NVIDIA GPU Cloud (NGC) <https://ngc.nvidia.com>`_. The 
-branch for this release is `r21.04
-<https://github.com/NVIDIA/PyProf/tree/r21.04>`_.
-
-Quick Installation Instructions
--------------------------------
-
-.. quick-install-start-marker-do-not-remove
-
-* Clone the git repository ::
+- Clone the repository
     
-    $ git clone https://github.com/NVIDIA/PyProf.git
+    $ git clone https://github.com/adityaiitb/PyProf.git
 
-* Navigate to the top level PyProf directory
+- Install PyProf
 
-* Install PyProf ::
+   $ pip install . --user
 
-   $ pip install .
-
-* Verify installation is complete with pip list ::
+- Verify installation
 
    $ pip list | grep pyprof 
 
-* Should display ::
-
-   pyprof            3.11.0.dev0
-
-.. quick-install-end-marker-do-not-remove
-
 Quick Start Instructions
 ------------------------
-
-.. quick-start-start-marker-do-not-remove
 
 * Add the following lines to the PyTorch network you want to profile: ::
 
@@ -111,8 +78,6 @@ Quick Start Instructions
 * Run the prof.py script to generate the reports. ::
 
     $ python -m pyprof.prof --csv net.dict
-
-.. quick-start-end-marker-do-not-remove
 
 Documentation
 -------------
@@ -144,7 +109,7 @@ Contributing
 
 Contributions to PyProf are more than welcome. To
 contribute make a pull request and follow the guidelines outlined in
-the `Contributing <CONTRIBUTING.md>`_ document.
+the [Contributing](CONTRIBUTING.md) document.
 
 Reporting problems, asking questions
 ------------------------------------
@@ -166,5 +131,3 @@ document. Ensure posted examples are:
   reproduces the problem. Remove all other problems that are not
   related to your request/question.
 
-.. |License| image:: https://img.shields.io/badge/License-Apache2-green.svg
-   :target: http://www.apache.org/licenses/LICENSE-2.0
