@@ -23,22 +23,8 @@ with open('VERSION', 'r') as f:
     if version.endswith("dev"):
         version = version[:-3]
 
-
-def req_file(filename, folder="requirements"):
-    with open(os.path.join(folder, filename)) as f:
-        content = f.readlines()
-    # you may also want to remove whitespace characters
-    # Example: `\n` at the end of each line
-    return [x.strip() for x in content]
-
-
-install_requires = req_file("requirements.txt")
-
-extras_require = {
-    # User packages
-    'nsys': req_file("requirements_nsys.txt"),
-}
-
+with open("requirements.txt", "r") as f:
+    install_requires = f.read().splitlines()
 
 setup(
     name='nvidia-pyprof',
@@ -46,10 +32,10 @@ setup(
     packages=find_packages(),
     author="Aditya Agrawal,Marek Kolodziej",
     author_email="aditya.iitb@gmail.com,mkolod@gmail.com",
-    maintainer="Elias Bermudez",
-    maintainer_email="dbermudez13@gmail.com",
-    url="https://github.com/NVIDIA/PyProf",
-    download_url="https://github.com/NVIDIA/PyProf",
+    maintainer="Aditya Agrawal",
+    maintainer_email="aditya.iitb@gmail.com",
+    url="https://github.com/adityaiitb/PyProf",
+    download_url="https://github.com/adityaiitb/PyProf",
     license="BSD 3-Clause License",
     description='NVIDIA Pytorch Profiler',
     classifiers=[
@@ -72,5 +58,4 @@ setup(
     platforms=["Linux"],
     include_package_data=True,
     install_requires=install_requires,
-    extras_require=extras_require,
 )
