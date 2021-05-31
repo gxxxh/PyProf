@@ -1,17 +1,3 @@
- # Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
- #
- # Licensed under the Apache License, Version 2.0 (the "License");
- # you may not use this file except in compliance with the License.
- # You may obtain a copy of the License at
- #
- #     http://www.apache.org/licenses/LICENSE-2.0
- # 
- # Unless required by applicable law or agreed to in writing, software
- # distributed under the License is distributed on an "AS IS" BASIS,
- # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- # See the License for the specific language governing permissions and
- # limitations under the License.
-
 [![License](https://img.shields.io/badge/License-Apache2-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 PyProf - PyTorch Profiling tool
@@ -47,16 +33,19 @@ Installation Instructions
 -------------------------
 
 - Clone the repository
-    
-    $ git clone https://github.com/adityaiitb/PyProf.git
+```bash
+$ git clone https://github.com/adityaiitb/PyProf.git
+```
 
 - Install PyProf
-
-   $ pip install . --user
+```bash
+$ pip3 install . --user
+```
 
 - Verify installation
-
-   $ pip list | grep pyprof 
+```bash
+$ pip3 list | grep pyprof
+```
 
 Quick Start Instructions
 ------------------------
@@ -98,11 +87,9 @@ The `Release Notes
 indicate the required versions of the NVIDIA Driver and CUDA, and also describe 
 which GPUs are supported by PyProf
 
-Presentation and Papers
-^^^^^^^^^^^^^^^^^^^^^^^
-
-* `Automating End-toEnd PyTorch Profiling <https://developer.nvidia.com/gtc/2020/video/s21143>`_.
-   * `Presentation slides <https://developer.download.nvidia.com/video/gputechconf/gtc/2020/presentations/s21143-automating-end-to-end-pytorch-profiling.pdf>`_.
+Presentation
+------------
+Automating End-to-End PyTorch Profiling. [Video](https://developer.nvidia.com/gtc/2020/video/s21143), [Slides](https://developer.download.nvidia.com/video/gputechconf/gtc/2020/presentations/s21143-automating-end-to-end-pytorch-profiling.pdf).
 
 Contributing
 ------------
