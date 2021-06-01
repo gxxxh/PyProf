@@ -1,7 +1,6 @@
 [![License](https://img.shields.io/badge/License-Apache2-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-PyProf - PyTorch Profiling tool
-===============================
+# PyProf: PyTorch Profiling tool
 
 PyProf is a tool that profiles and analyzes the GPU performance of PyTorch
 models. PyProf aggregates kernel performance from `Nsight Systems
@@ -29,8 +28,7 @@ following additional features:
  
 * Correlate the line in the user's code that launched a particular kernel (program trace).
 
-Installation
-------------
+## Installation
 
 ```bash
 # clone
@@ -43,11 +41,11 @@ $ pip3 install . --user
 $ pip3 list | grep pyprof
 ```
 
-Usage
------
+## Usage
+
 There are four steps to the tool flow.
 
-1. Import library and annotate code.
+1. **Import library and annotate code.**
 
 ```python
 import torch.cuda.profiler as profiler
@@ -84,12 +82,31 @@ with torch.autograd.profiler.emit_nvtx():
             profiler.stop()
 ```
 
-2. Profile using either NVProf or Nsight Systems to obtain a SQLite3 database.
+2. **Profile using Nsight Systems or NVProf to obtain a SQLite3 database.**
 
 > NVProf is currently being phased out, and it is recommended to use Nsight Systems.
 
-Profile with NVProf
--------------------
+#### Profile with Nsight Systems
+
+Generate a SQLite database as follows.
+
+```bash
+$ nsys profile 
+    -f true                  # Overwrite existing files
+    -o net                   # Create net.qdrep (used by Nsys viewer)
+    -c cudaProfilerApi       # Optional argument required for profiler start/stop
+    --stop-on-range-end true # Optional argument required for profiler start/stop
+    --export sqlite          # Export net.sql (similar to NVProf) 
+    python net.py
+```
+
+If using `profiler.start()` and `profiler.stop()` in `net.py`, the options
+`-c cudaProfilerApi --stop-on-range-end true` are required.
+
+> If you are experience slow profiling, `nsys` contains an option `-s none`
+> which disables CPU sampling and significantly speeds up profiling.
+
+#### Profile with NVProf
 
 Generate a SQL (NVVP) file. This file can also be opened with Nvidia
 Visual Profiler (NVVP).
@@ -116,30 +133,9 @@ $ nvprof
 If you get a message such as `ERR_NVGPUCTRPERM The user running
 <tool_name/application_name> does not have permission to access NVIDIA
 GPU Performance Counters on the target device`, follow the
-steps in [docs/hardware_counter.md](docs/hardware_counter.md).
+steps in [docs/hardware_counters.md](docs/hardware_counters.md).
 
-Profile with Nsight Systems
----------------------------
-
-Generate a SQLite database as follows.
-
-```bash
-$ nsys profile 
-    -f true                  # Overwrite existing files
-    -o net                   # Create net.qdrep (used by Nsys viewer)
-    -c cudaProfilerApi       # Optional argument required for profiler start/stop
-    --stop-on-range-end true # Optional argument required for profiler start/stop
-    --export sqlite          # Export net.sql (similar to NVProf) 
-    python net.py
-```
-
-If using `profiler.start()` and `profiler.stop()` in `net.py`, the options
-`-c cudaProfilerApi --stop-on-range-end true` are required.
-
-> If you are experience slow profiling, `nsys` contains an option `-s none`
-> which disables CPU sampling and significantly speeds up profiling.
-
-3. Parse the SQL file.
+3. **Parse the SQL file.**
 
 Run parser on the SQL file. The output is an ASCII file. Each line
 is a python dictionary which contains information about the kernel name,
@@ -150,7 +146,7 @@ scripts as well. Nsys will create a file called net.sqlite.
 $ python -m pyprof.parse net.sqlite > net.dict
 ```
 
-4. Use this information to calculate flops and bytes.
+4. **Use this information to calculate flops and bytes.**
 
 
 Documentation
