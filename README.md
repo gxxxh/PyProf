@@ -29,8 +29,8 @@ following additional features:
  
 * Correlate the line in the user's code that launched a particular kernel (program trace).
 
-Installation Instructions
--------------------------
+Installation
+------------
 
 ```bash
 # clone
@@ -43,26 +43,115 @@ $ pip3 install . --user
 $ pip3 list | grep pyprof
 ```
 
-Quick Start Instructions
-------------------------
+Usage
+-----
+There are four steps to the tool flow.
 
-* Add the following lines to the PyTorch network you want to profile: ::
+1. Import library and annotate code.
 
-    import torch.cuda.profiler as profiler
-    import pyprof
-    pyprof.init()
+```python
+import torch.cuda.profiler as profiler
+import pyprof
+pyprof.init()
+```
 
-* Profile with NVProf or Nsight Systems to generate a SQL file. ::
+Run the training / inference loop within the [PyTorch NVTX context
+manager](https://pytorch.org/docs/stable/_modules/torch/autograd/profiler.html#emit_nvtx)
+as shown below. In addition, you can use `profiler.start()` and
+`profiler.stop()` to pick an iteration(s) for which you would like to
+capture data.
 
-    $ nsys profile -f true -o net --export sqlite python net.py
+```python
+iters = 500
+iter_to_capture = 100
 
-* Run the parse.py script to generate the dictionary. ::
-  
-    $ python -m pyprof.parse net.sqlite > net.dict
+# Define network, loss function, optimizer etc.
 
-* Run the prof.py script to generate the reports. ::
+# PyTorch NVTX context manager
+with torch.autograd.profiler.emit_nvtx():
 
-    $ python -m pyprof.prof --csv net.dict
+    for iter in range(iters):
+
+        if iter == iter_to_capture:
+            profiler.start()
+
+        output = net(images)
+        loss = criterion(output, labels)
+        loss.backward()
+        optimizer.step()
+
+        if iter == iter_to_capture:
+            profiler.stop()
+```
+
+2. Profile using either NVProf or Nsight Systems to obtain a SQLite3 database.
+
+> NVProf is currently being phased out, and it is recommended to use Nsight Systems.
+
+Profile with NVProf
+-------------------
+
+Generate a SQL (NVVP) file. This file can also be opened with Nvidia
+Visual Profiler (NVVP).
+
+If you used `profiler.start()` and `profiler.stop()`, then do
+
+```bash
+$ nvprof 
+    -f 
+    -o net.sql 
+    --profile-from-start off  # Profiling start/stop inside net.py
+    python net.py
+```
+
+If you did not use `profiler.start()` and `profiler.stop()`, then do
+
+```bash
+$ nvprof
+    -f            # Overwrite existing file
+    -o net.sql    # Create net.sql
+    python net.py
+```
+
+If you get a message such as `ERR_NVGPUCTRPERM The user running
+<tool_name/application_name> does not have permission to access NVIDIA
+GPU Performance Counters on the target device`, follow the
+steps in [docs/hardware_counter.md](docs/hardware_counter.md).
+
+Profile with Nsight Systems
+---------------------------
+
+Generate a SQLite database as follows.
+
+```bash
+$ nsys profile 
+    -f true                  # Overwrite existing files
+    -o net                   # Create net.qdrep (used by Nsys viewer)
+    -c cudaProfilerApi       # Optional argument required for profiler start/stop
+    --stop-on-range-end true # Optional argument required for profiler start/stop
+    --export sqlite          # Export net.sql (similar to NVProf) 
+    python net.py
+```
+
+If using `profiler.start()` and `profiler.stop()` in `net.py`, the options
+`-c cudaProfilerApi --stop-on-range-end true` are required.
+
+> If you are experience slow profiling, `nsys` contains an option `-s none`
+> which disables CPU sampling and significantly speeds up profiling.
+
+3. Parse the SQL file.
+
+Run parser on the SQL file. The output is an ASCII file. Each line
+is a python dictionary which contains information about the kernel name,
+duration, parameters etc. This file can be used as input to other custom
+scripts as well. Nsys will create a file called net.sqlite.
+
+```bash
+$ python -m pyprof.parse net.sqlite > net.dict
+```
+
+4. Use this information to calculate flops and bytes.
+
 
 Documentation
 -------------
@@ -71,17 +160,6 @@ The User Guide can be found in the
 `documentation for current release 
 <https://docs.nvidia.com/deeplearning/frameworks/pyprof-user-guide/index.html>`_, and 
 provides instructions on how to install and profile with PyProf.
-
-A complete `Quick Start Guide <https://docs.nvidia.com/deeplearning/frameworks/pyprof-user-guide/quickstart.html>`_ 
-provides step-by-step instructions to get you quickly started using PyProf.
-
-An `FAQ <https://docs.nvidia.com/deeplearning/frameworks/pyprof-user-guide/faqs.html>`_ provides
-answers for frequently asked questions.
-
-The `Release Notes 
-<https://docs.nvidia.com/deeplearning/frameworks/pyprof-release-notes/index.html>`_
-indicate the required versions of the NVIDIA Driver and CUDA, and also describe 
-which GPUs are supported by PyProf
 
 Presentation
 ------------
