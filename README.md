@@ -32,18 +32,14 @@ following additional features:
 Installation Instructions
 -------------------------
 
-- Clone the repository
 ```bash
+# clone
 $ git clone https://github.com/adityaiitb/PyProf.git
-```
 
-- Install PyProf
-```bash
+# install
 $ pip3 install . --user
-```
 
-- Verify installation
-```bash
+# verify
 $ pip3 list | grep pyprof
 ```
 
