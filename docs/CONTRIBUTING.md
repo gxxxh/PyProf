@@ -14,7 +14,7 @@
 # limitations under the License.
 -->
 
-# Contribution Rules
+## Contribution Rules
 
 - The code style convention is enforced by clang-format. See the
   Developer Guide for instructions on how to ensure your contributions
@@ -115,3 +115,23 @@ By doing this you certify the below:
     personal information I submit with it, including my sign-off) is
     maintained indefinitely and may be redistributed consistent with
     this project or the open source license(s) involved.
+
+## Reporting problems, asking questions
+
+We appreciate any feedback, questions or bug reporting regarding this
+project. When help with code is needed, follow the process outlined in
+the Stack Overflow (https://stackoverflow.com/help/mcve)
+document. Ensure posted examples are:
+
+* minimal – use as little code as possible that still produces the
+  same problem
+
+* complete – provide all parts needed to reproduce the problem. Check
+  if you can strip external dependency and still show the problem. The
+  less time we spend on reproducing problems the more time we have to
+  fix it
+
+* verifiable – test the code you're about to provide to make sure it
+  reproduces the problem. Remove all other problems that are not
+  related to your request/question.
+
