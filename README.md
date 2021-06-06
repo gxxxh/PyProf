@@ -103,7 +103,7 @@ $ nsys profile
 If using `profiler.start()` and `profiler.stop()` in `net.py`, the options
 `-c cudaProfilerApi --stop-on-range-end true` are required.
 
-> If you are experience slow profiling, `nsys` contains an option `-s none`
+> If you experience slow profiling, `nsys` contains an option `-s none`
 > which disables CPU sampling and significantly speeds up profiling.
 
 #### Profile with NVProf
@@ -133,7 +133,7 @@ $ nvprof
 If you get a message such as `ERR_NVGPUCTRPERM The user running
 <tool_name/application_name> does not have permission to access NVIDIA
 GPU Performance Counters on the target device`, follow the
-steps in [docs/hardware_counters.md](docs/hardware_counters.md).
+steps [here](docs/hardware_counters.md).
 
 3. **Parse the SQL file.**
 
@@ -148,43 +148,36 @@ $ python -m pyprof.parse net.sqlite > net.dict
 
 4. **Use this information to calculate flops and bytes.**
 
+## Advanced Usage
 
-Documentation
--------------
+With some additional annotations in the model code, you can get
+even richer profiling information e.g. the name of the layer, say
+`BERT:Encoder_2:FFN:LayerNorm`, associated with every GPU kernel. It
+is also easy to enable profiling of modules and functions with custom
+`forward` and `backward` methods. One can also extend the tool to
+add bytes and flops calculations for such custom functions. See
+[here](./docs/advanced.md) for instructions.
 
-The User Guide can be found in the 
-`documentation for current release 
-<https://docs.nvidia.com/deeplearning/frameworks/pyprof-user-guide/index.html>`_, and 
-provides instructions on how to install and profile with PyProf.
 
-Presentation
-------------
-Automating End-to-End PyTorch Profiling. [Video](https://developer.nvidia.com/gtc/2020/video/s21143), [Slides](https://developer.download.nvidia.com/video/gputechconf/gtc/2020/presentations/s21143-automating-end-to-end-pytorch-profiling.pdf).
+## Slides and Recorded Talks
 
-Contributing
-------------
+- Nvidia GPU Technology Conference (GTC), 2020: [Slides](https://developer.download.nvidia.com/video/gputechconf/gtc/2020/presentations/s21143-automating-end-to-end-pytorch-profiling.pdf), [Video](https://developer.nvidia.com/gtc/2020/video/s21143).
 
-Contributions to PyProf are more than welcome. To
-contribute make a pull request and follow the guidelines outlined in
-the [Contributing](CONTRIBUTING.md) document.
+## Citation
 
-Reporting problems, asking questions
-------------------------------------
+If you use PyProf and would like to cite us, we suggest the following.
 
-We appreciate any feedback, questions or bug reporting regarding this
-project. When help with code is needed, follow the process outlined in
-the Stack Overflow (https://stackoverflow.com/help/mcve)
-document. Ensure posted examples are:
+```
+@misc{nvidia-pyprof,
+  author = {Agrawal, Aditya and Kolodziej, Marek},
+  title = {"PyProf"},
+  year = {2019},
+  publisher = {GitHub},
+  howpublished = {\url{https://github.com/adityaiitb/PyProf}}
+}
+```
 
-* minimal – use as little code as possible that still produces the
-  same problem
+## Contributing and Reporting Issues
 
-* complete – provide all parts needed to reproduce the problem. Check
-  if you can strip external dependency and still show the problem. The
-  less time we spend on reproducing problems the more time we have to
-  fix it
-
-* verifiable – test the code you're about to provide to make sure it
-  reproduces the problem. Remove all other problems that are not
-  related to your request/question.
-
+Contributions are more than welcome. To contribute make a pull request
+and follow the guidelines [here](./docs/CONTRIBUTING.md).

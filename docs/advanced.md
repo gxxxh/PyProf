@@ -22,11 +22,11 @@ PyProf profiles.
 ### Layer Annotation
 
 Adding custom NVTX ranges to the model layers will allow PyProf to aggregate
-profile results based on the ranges. ::
+profile results based on the ranges.
 
 ```python3
 # examples/user_annotation/resnet.py
-# Use the “layer:” prefix
+# Use the "layer:" prefix
 
 class Bottleneck(nn.Module):
   def forward(self, x):
