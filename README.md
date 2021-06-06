@@ -2,31 +2,34 @@
 
 # PyProf: PyTorch Profiling tool
 
-PyProf is a tool that profiles and analyzes the GPU performance of PyTorch
-models. PyProf aggregates kernel performance from `Nsight Systems
-<https://developer.nvidia.com/nsight-systems>`_ or `NvProf
-<https://developer.nvidia.com/nvidia-visual-profiler>`_ and provides the 
-following additional features:
+PyProf profiles and analyzes the GPU performance of PyTorch models. It
+aggregates the following information from
+[Nsight Systems]( https://developer.nvidia.com/nsight-systems) or
+[NvProf](https://developer.nvidia.com/nvidia-visual-profiler)
+for every GPU kernel.
 
-* Identifies the layer that launched a kernel: e.g. the association of 
-  `ComputeOffsetsKernel` with a concrete PyTorch layer or API is not obvious.
+- Kernel name e.g. `turing_fp16_s884gemm_fp16_64x128_ldg8_f2f_tn`.
+- Kernel duration.
+- Device id, stream id.
+- Grid dimensions, block dimensions.
+- Thread id.
 
-* Identifies the tensor dimensions and precision: without knowing the tensor 
-  dimensions and precision, it's impossible to reason about whether the actual 
-  (silicon) kernel time is close to maximum performance of such a kernel on 
-  the GPU. Knowing the tensor dimensions and precision, we can figure out the 
-  FLOPs and bandwidth required by a layer, and then determine how close to 
-  maximum performance the kernel is for that operation.
+In addition it provides the following information for almost every
+GPU kernel.
 
-* Forward-backward correlation: PyProf determines what the forward pass step 
-  is that resulted in the particular weight and data gradients (wgrad, dgrad), 
-  which makes it possible to determine the tensor dimensions required by these
-  backprop steps to assess their performance.
- 
-* Determines Tensor Core usage: PyProf can highlight the kernels that use 
-  `Tensor Cores <https://developer.nvidia.com/tensor-cores>`_.
- 
-* Correlate the line in the user's code that launched a particular kernel (program trace).
+- PyTorch module and op name e.g. `torch.nn.functional`, `linear`.
+- Tensor shape and data type of all input arguments e.g. `[32,3,224,224]fp16;[64,3,7,7]fp16`.
+- Total data movement (bytes) and floating point operations (flops).
+- [Tensor Core](https://developer.nvidia.com/tensor-cores) usage.
+- Call stack e.g. `ncf.py:352, ncf.py:277, apex/amp/_initialize.py:197,
+/home/ubuntu/dlperf/NCF/neumf.py:107`.
+- Direction i.e. forward or backward.
+- Forward-backward correlation. The tool correlates the GPU kernels
+invoked during back propagation to the corresponding kernels during
+forward propagation.
+
+With additional user annotation (advanced mode):
+- Associate layer names e.g. `BERT:Encoder_2:FFN:LayerNorm` to a GPU kernel.
 
 ## Installation
 
