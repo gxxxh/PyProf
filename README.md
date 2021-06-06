@@ -172,7 +172,7 @@ If you use PyProf and would like to cite us, we suggest the following.
   author = {Agrawal, Aditya and Kolodziej, Marek},
   title = {"PyProf"},
   year = {2019},
-  publisher = {GitHub},
+  publisher = {"Nvidia Corporation"},
   howpublished = {\url{https://github.com/adityaiitb/PyProf}}
 }
 ```
