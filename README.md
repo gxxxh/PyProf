@@ -50,19 +50,20 @@ There are four steps to the tool flow.
 
 1. **Import library and annotate code.**
 
-```python
-import torch.cuda.profiler as profiler
-import pyprof
-pyprof.init()
-```
-
-Run the training / inference loop within the [PyTorch NVTX context
+Import and initialize the tool.  Run the training
+/ inference loop within the [PyTorch NVTX context
 manager](https://pytorch.org/docs/stable/_modules/torch/autograd/profiler.html#emit_nvtx)
 as shown below. In addition, you can use `profiler.start()` and
 `profiler.stop()` to pick an iteration(s) for which you would like to
 capture data.
 
-```python
+```python3
+import torch.cuda.profiler as profiler
+
+# Import and initialize PyProf
+import pyprof
+pyprof.init()
+
 iters = 500
 iter_to_capture = 100
 
@@ -149,7 +150,83 @@ scripts as well. Nsys will create a file called net.sqlite.
 $ python -m pyprof.parse net.sqlite > net.dict
 ```
 
-4. **Use this information to calculate flops and bytes.**
+4. **Run the prof script.**
+
+Using the python dictionary created in step 3 as the input, PyProf can
+produce a CSV output, a columnated output (similar to `column -t` for
+terminal readability) and a space separated output (for post processing
+by AWK for instance). It produces 20 columns of information for every
+GPU kernel and you can select a subset of columns using the `-c` flag.
+Note that a few columns might have the value `na` implying either its a
+work in progress or the tool was unable to extract that information.
+
+### Output columns
+
+| Column | Description |
+| ------ | ----------- |
+| idx    | Index |
+| seq    | PyTorch Sequence Id |
+| altseq | PyTorch Alternate Sequence Id |
+| tid    | Thread Id |
+| layer  | User annotated NVTX string (can be nested) |
+| trace  | Function Call Trace |
+| dir    | Direction |
+| sub    | Sub Sequence Id |
+| mod    | PyTorch Module |
+| op     | Operation |
+| kernel | Kernel Name |
+| params | Parameters |
+| sil    | Silicon Time (in ns) |
+| tc     | Tensor Core Usage |
+| device | GPU Device Id |
+| stream | Stream Id |
+| grid   | Grid Dimensions |
+| block  | Block Dimensions |
+| flops  | Floating point ops (FMA = 2 FLOPs) |
+| bytes  | Number of bytes in and out of DRAM |
+
+Here are a few examples of how to use `prof`.
+
+- Print usage and help. Lists all available output columns.
+```bash
+$ python -m pyprof.prof -h
+```
+
+- Columnated output of width 150 with default columns. The default options are "idx,dir,sub,mod,op,kernel,params,sil".
+```bash
+$ python -m pyprof.prof -w 150 net.dict
+```
+
+- CSV output.
+```bash
+$ python -m pyprof.prof --csv net.dict
+```
+
+- Space seperated output.
+```bash
+$ python -m pyprof.prof net.dict
+```
+
+- Columnated output of width 130 with columns index,direction,kernel name,parameters,silicon time.
+```bash
+$ python -m pyprof.prof -w 130 -c idx,dir,kernel,params,sil net.dict
+```
+
+- CSV output with columns index,direction,kernel name,parameters,silicon time.
+```bash
+$ python -m pyprof.prof --csv -c idx,dir,kernel,params,sil net.dict
+```
+
+- Space separated output with columns index,direction,kernel name,parameters,silicon time.
+```bash
+$ python -m pyprof.prof -c idx,dir,kernel,params,sil net.dict
+```
+
+- Input redirection.
+```bash
+$ python -m pyprof.prof < net.dict
+```
+
 
 ## Advanced Usage
 
