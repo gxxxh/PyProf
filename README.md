@@ -1,6 +1,6 @@
 [![License](https://img.shields.io/badge/License-Apache2-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-# PyProf: PyTorch Profiling tool
+# PyProf: PyTorch Profiling tool for GPUs
 
 PyProf profiles and analyzes the GPU performance of PyTorch models. It
 aggregates the following information from
@@ -160,7 +160,7 @@ GPU kernel and you can select a subset of columns using the `-c` flag.
 Note that a few columns might have the value `na` implying either its a
 work in progress or the tool was unable to extract that information.
 
-### Output columns
+#### Output columns
 
 | Column | Description |
 | ------ | ----------- |
