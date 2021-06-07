@@ -187,46 +187,32 @@ work in progress or the tool was unable to extract that information.
 
 Here are a few examples of how to use `prof`.
 
-- Print usage and help. Lists all available output columns.
 ```bash
+# Print usage and help. Lists all available output columns.
 $ python -m pyprof.prof -h
-```
 
-- Columnated output of width 150 with default columns. The default options are "idx,dir,sub,mod,op,kernel,params,sil".
-```bash
+# Columnated output of width 150 with default columns.
+# The default options are "idx,dir,sub,mod,op,kernel,params,sil".
 $ python -m pyprof.prof -w 150 net.dict
-```
 
-- CSV output.
-```bash
+# CSV output.
 $ python -m pyprof.prof --csv net.dict
-```
 
-- Space seperated output.
-```bash
+# Space seperated output.
 $ python -m pyprof.prof net.dict
-```
 
-- Columnated output of width 130 with columns index,direction,kernel name,parameters,silicon time.
-```bash
+# Columnated output of width 130 with columns index,direction,kernel name,parameters,silicon time.
 $ python -m pyprof.prof -w 130 -c idx,dir,kernel,params,sil net.dict
-```
 
-- CSV output with columns index,direction,kernel name,parameters,silicon time.
-```bash
+# CSV output with columns index,direction,kernel name,parameters,silicon time.
 $ python -m pyprof.prof --csv -c idx,dir,kernel,params,sil net.dict
-```
 
-- Space separated output with columns index,direction,kernel name,parameters,silicon time.
-```bash
+# Space separated output with columns index,direction,kernel name,parameters,silicon time.
 $ python -m pyprof.prof -c idx,dir,kernel,params,sil net.dict
-```
 
-- Input redirection.
-```bash
+# Input redirection.
 $ python -m pyprof.prof < net.dict
 ```
-
 
 ## Advanced Usage
 
