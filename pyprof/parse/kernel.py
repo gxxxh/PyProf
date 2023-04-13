@@ -204,6 +204,7 @@ class Kernel(object):
         a = lambda: None
         a.kShortName = self.kShortName
         a.kDuration = self.kDuration
+        a.rDuration = self.rDuration
         #a.layerMarkers = self.layerMarkers
         a.layer = self.layer
         a.trace = self.traceMarkers
@@ -225,5 +226,10 @@ class Kernel(object):
         a.grid = self.grid
         a.block = self.block
         a.kLongName = self.kLongName
+
+        a.kStartTime = self.kStartTime # GPU start time
+        a.kEndTime = self.kEndTime # GPU end time
+        a.rStartTime = self.rStartTime
+        a.rEndTime = self.rEndTime
 
         print(a.__dict__)
