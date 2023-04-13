@@ -148,7 +148,8 @@ class Nsight(object):
             assert (type(mlist) == list)
             for m in mlist:
                 assert (", seq = " in m)
-                seq = int(m.split("=")[1])
+                # seq = int(m.split("=")[1])
+                seq = int(m.split(",")[1].split("=")[1])
                 ids.append(seq)
 
             #Remove duplicates
@@ -176,8 +177,10 @@ class Nsight(object):
             for i in range(1, len(mlist)):
                 m = mlist[i]
                 pm = mlist[i - 1]
-                name, seq = m.split(",")
-                pname, pseq = pm.split(",")
+                # name, seq = m.split(",")
+                # pname, pseq = pm.split(",")
+                name, seq = m.split(", ")[0:2]
+                pname, pseq = pm.split(", ")[0:2]
                 similar = (name in pname) or (pname in name)
                 if (seq == pseq) and similar:
                     continue
