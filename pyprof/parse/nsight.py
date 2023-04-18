@@ -23,22 +23,23 @@ class Nsight(object):
 	This class gets kernel information from the SQL (nvvp) database.
 	"""
 
-    #driverT = "CUPTI_ACTIVITY_KIND_DRIVER"
+    # driverT = "CUPTI_ACTIVITY_KIND_DRIVER"
     runtimeT = "CUPTI_ACTIVITY_KIND_RUNTIME"
     kernelT = "CUPTI_ACTIVITY_KIND_KERNEL"
     markerT = "NVTX_EVENTS"
     stringT = "StringIds"
 
-    def __init__(self, db):
+    def __init__(self, db, memory=False):
         self.db = db
         self.markerId = 0
+        self.memory = memory
 
     def getProfileStart(self):
         """
 		Get the profile start time
 		"""
         profStart = sys.maxsize
-        #for table in [self.driverT, self.runtimeT, self.kernelT, self.markerT]:
+        # for table in [self.driverT, self.runtimeT, self.kernelT, self.markerT]:
         for table in [self.runtimeT, self.kernelT, self.markerT]:
             colname = "start"
             cmd = "select {} from {} ORDER BY {} ASC LIMIT 1".format(colname, table, colname)
@@ -61,7 +62,7 @@ class Nsight(object):
 
         self.db.execute('CREATE INDEX start_index ON marker (start)')
         self.db.execute('CREATE INDEX end_index ON marker (end)')
-        #self.db.execute('CREATE INDEX id_index ON marker (id)')
+        # self.db.execute('CREATE INDEX id_index ON marker (id)')
 
     def encode_object_id(self, info):
         # Nothing to do for nsight. objId comes out of database
@@ -71,22 +72,42 @@ class Nsight(object):
         """
 		Get GPU kernel info
 		"""
-        cmd = (
-            "SELECT "
-            "demangledName as kNameId, "
-            "strings.value as name, "
-            "runtime.start as rStart, "
-            "runtime.end as rEnd, "
-            "runtime.globalTid as objId, "
-            "runtime.globalTid / 0x1000000 % 0x1000000 AS pid, "
-            "runtime.globalTid % 0x1000000 AS tid, "
-            "kernels.globalPid / 0x1000000 % 0x1000000 AS kpid, "
-            "kernels.correlationId,kernels.start,kernels.end,deviceId,streamId,"
-            "gridX,gridY,gridZ,blockX,blockY,blockZ "
-            "FROM {} AS kernels "
-            "JOIN {} AS strings ON (kNameId = strings.Id) "
-            "JOIN {} AS runtime ON (kernels.correlationId = runtime.correlationId AND kpid = pid) "
-        ).format(self.kernelT, self.stringT, self.runtimeT)
+        cmd = ""
+        if self.memory:
+            cmd = (
+                "SELECT "
+                "demangledName as kNameId, "
+                "strings.value as name, "
+                "runtime.start as rStart, "
+                "runtime.end as rEnd, "
+                "runtime.globalTid as objId, "
+                "runtime.globalTid / 0x1000000 % 0x1000000 AS pid, "
+                "runtime.globalTid % 0x1000000 AS tid, "
+                "kernels.globalPid / 0x1000000 % 0x1000000 AS kpid, "
+                "kernels.correlationId,kernels.start,kernels.end,deviceId,streamId,"
+                "kernels.staticSharedMemory,kernels.dynamicSharedMemory,kernels.localMemoryPerThread,kernels.localMemoryTotal,kernels.sharedMemoryExecuted,"
+                "gridX,gridY,gridZ,blockX,blockY,blockZ "
+                "FROM {} AS kernels "
+                "JOIN {} AS strings ON (kNameId = strings.Id) "
+                "JOIN {} AS runtime ON (kernels.correlationId = runtime.correlationId AND kpid = pid) "
+            ).format(self.kernelT, self.stringT, self.runtimeT)
+        else:
+            cmd = (
+                "SELECT "
+                "demangledName as kNameId, "
+                "strings.value as name, "
+                "runtime.start as rStart, "
+                "runtime.end as rEnd, "
+                "runtime.globalTid as objId, "
+                "runtime.globalTid / 0x1000000 % 0x1000000 AS pid, "
+                "runtime.globalTid % 0x1000000 AS tid, "
+                "kernels.globalPid / 0x1000000 % 0x1000000 AS kpid, "
+                "kernels.correlationId,kernels.start,kernels.end,deviceId,streamId,"
+                "gridX,gridY,gridZ,blockX,blockY,blockZ "
+                "FROM {} AS kernels "
+                "JOIN {} AS strings ON (kNameId = strings.Id) "
+                "JOIN {} AS runtime ON (kernels.correlationId = runtime.correlationId AND kpid = pid) "
+            ).format(self.kernelT, self.stringT, self.runtimeT)
         result = self.db.select(cmd)
         return result
 
@@ -116,7 +137,7 @@ class Nsight(object):
         altSeqMarkers = []
         bprop = False
 
-        #Helper functions
+        # Helper functions
 
         def delete(objId, sTime):
             """
@@ -125,7 +146,7 @@ class Nsight(object):
 			"""
             margin = 0
             cmd = 'DELETE FROM marker WHERE globalTid = {} AND end < {}'.format(objId, sTime - margin)
-            #cmd = 'DELETE FROM marker WHERE end < {}'.format(sTime - margin)
+            # cmd = 'DELETE FROM marker WHERE end < {}'.format(sTime - margin)
             self.db.execute(cmd)
 
         def getLayerName(mlist):
@@ -152,7 +173,7 @@ class Nsight(object):
                 seq = int(m.split(",")[1].split("=")[1])
                 ids.append(seq)
 
-            #Remove duplicates
+            # Remove duplicates
             ids = list(set(ids))
             ids.sort()
             return ids
@@ -162,7 +183,7 @@ class Nsight(object):
 			Sorting function for sequence markers
 			"""
             assert (", seq = " in elem)
-            #sort by sequence id and then the string
+            # sort by sequence id and then the string
             l = elem.split(" = ")
             return l[1] + l[0]
 
@@ -195,7 +216,7 @@ class Nsight(object):
             assert (type(mlist) == list)
             if len(mlist) == 0:
                 return mlist
-            mlist = mlist[-1]  #The last stack trace will be a super set.
+            mlist = mlist[-1]  # The last stack trace will be a super set.
             mlist = eval(mlist)
             mlist = mlist['traceMarker']
             assert (type(mlist) == list)
@@ -210,7 +231,7 @@ class Nsight(object):
             mlist = list(filter(lambda x: "/torch/optim/" not in x, mlist))
             return mlist
 
-        #Find all encapsulating markers
+        # Find all encapsulating markers
         cmd = 'SELECT text from marker where \
 				globalTid = {} and \
 				start < {} and \
@@ -218,12 +239,12 @@ class Nsight(object):
 				ORDER BY start ASC'.format(objId, startTime, endTime)
         result = self.db.select(cmd)
 
-        #Bin markers into different lists
+        # Bin markers into different lists
         for r in result:
-            #m = self.getString(r['name'])
+            # m = self.getString(r['name'])
             m = r['text']
 
-            #Hack: If its a known gradient checkpointing marker, ignore it.
+            # Hack: If its a known gradient checkpointing marker, ignore it.
             if m.find("CheckpointFunctionBackward") >= 0:
                 continue
 
@@ -243,17 +264,17 @@ class Nsight(object):
             else:
                 otherMarkers.append(m)
 
-        #Remove duplicates, sort and prune seqMarkers
+        # Remove duplicates, sort and prune seqMarkers
         if (len(seqMarkers)):
             seqMarkers = list(set(seqMarkers))
             seqMarkers.sort(key=seqcompare)
             seqMarkers = prune(seqMarkers)
 
-        #Remove duplicates from otherMarkers
+        # Remove duplicates from otherMarkers
         otherMarkers = list(set(otherMarkers))
 
-        #Get markers with seq id (inserted by PyTorch) from the previous kernel to the present kernel
-        #Only for fprop kernels
+        # Get markers with seq id (inserted by PyTorch) from the previous kernel to the present kernel
+        # Only for fprop kernels
         if (len(result) and not bprop):
             '''
 			loId = self.markerId
@@ -279,7 +300,7 @@ class Nsight(object):
             pass
 
         delete(objId, startTime)
-        #delete("", startTime)
+        # delete("", startTime)
 
         return layerMarkers, filterTrace(
             traceMarkers

@@ -17,6 +17,8 @@
 
 import errno, os, sys
 
+import pandas as pd
+
 
 class Output():
     """
@@ -49,80 +51,11 @@ class Output():
     }
 
     def __init__(self, args):
-        self.cols = args.c
-        self.csv = args.csv
-        self.col = True if (args.w > 0) else False
-        self.width = args.w
+        self.cols = list(self.table.keys())
+        self.df = pd.DataFrame(columns=self.cols)
+        self.save_path = args.output
 
-        w = 0
-        for col in self.cols:
-            assert col in Output.table.keys()
-            w += Output.table[col][3]
-
-        if ((self.col) and (w > self.width)):
-            print("Minimum width required to print {} = {}. Exiting.".format(",".join(self.cols), w))
-            sys.exit(1)
-
-        remainder = self.width - w
-
-        if ("kernel" in self.cols) and ("params" in self.cols):
-            Output.table["kernel"][3] = int(remainder / 2)
-            Output.table["params"][3] = int(remainder / 2)
-        elif ("kernel" in self.cols):
-            Output.table["kernel"][3] = remainder
-        elif ("params" in self.cols):
-            Output.table["params"][3] = remainder
-
-        #header format
-        cadena = ""
-        for col in self.cols:
-            _, _, t, w = Output.table[col]
-            cadena += "%-{}.{}s ".format(w, w)
-
-        self.hFormat = cadena
-
-        #data format
-        cadena = ""
-        for col in self.cols:
-            _, _, t, w = Output.table[col]
-            if (t == str):
-                cadena += "%-{}.{}s ".format(w, w)
-            elif (t == int):
-                cadena += "%{}d ".format(w)
-
-        self.dFormat = cadena
-
-    def foo(self, cadena, pformat):
-        if self.csv:
-            cadena = ",".join(map(lambda x: '"' + str(x) + '"', cadena))
-        elif self.col:
-            cadena = pformat % cadena
-        else:
-            cadena = " ".join(map(str, cadena))
-
-        try:
-            print(cadena)
-        except IOError as e:
-            #gracefully handle pipes
-            if e.errno == errno.EPIPE:
-                # Python flushes standard streams on exit; redirect remaining output
-                # to devnull to avoid another BrokenPipeError at shutdown
-
-                devnull = os.open(os.devnull, os.O_WRONLY)
-                os.dup2(devnull, sys.stdout.fileno())
-                sys.exit(0)
-            else:
-                sys.exit(-1)
-
-    def header(self):
-        cadena = ()
-        for col in self.cols:
-            h = Output.table[col][0]
-            cadena = cadena + (h, )
-
-        self.foo(cadena, self.hFormat)
-
-    def data(self, a):
+    def add(self, a):
         if a.dir == "":
             direc = "na"
         else:
@@ -138,7 +71,7 @@ class Output():
         else:
             mod = a.mod
 
-        cadena = ()
+        d = {}
         for col in self.cols:
             attr = Output.table[col][1]
             val = getattr(a, attr)
@@ -150,18 +83,21 @@ class Output():
 
             if col == "trace":
                 assert (type(val) == list)
-                if self.col and len(val):
-                    val = val[-1]
-                    val = val.split("/")[-1]
-                else:
-                    val = ",".join(val)
-                    val = "-" if val == "" else val
+                # if len(val):
+                #     val = val[-1]
+                #     val = val.split("/")[-1]
+                # else:
+                val = ",".join(val)
+                val = "-" if val == "" else val
 
             if col in ["seq", "altseq"]:
                 assert (type(val) == list)
                 val = ",".join(map(str, val))
                 val = "-" if val == "" else val
 
-            cadena = cadena + (val, )
+            d[col] = [val]
 
-        self.foo(cadena, self.dFormat)
+        self.df = pd.concat([self.df, pd.DataFrame.from_dict(d)],ignore_index=True)
+
+    def save(self):
+        self.df.to_csv(self.save_path, index=False)

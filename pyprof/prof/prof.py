@@ -208,7 +208,8 @@ def main():
 
     idx = -1
     #Read in all the kernel info
-    for line in cmdArgs.file:
+    lines = cmdArgs.file.readlines()
+    for line in lines:
         idx += 1
         kernel = eval(line)
         assert (kernel)
@@ -280,7 +281,7 @@ def main():
         d.mod = mod
         d.op = op
 
-        output.data(d)
+        output.add(d)
 
 
 kernels = []

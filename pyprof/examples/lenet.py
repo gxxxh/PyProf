@@ -73,7 +73,7 @@ with torch.autograd.profiler.emit_nvtx():
 
     # in your training loop:
     optimizer.zero_grad()  # zero the gradient buffers
-
+    print("start running")
     profiler.start()
     output = net(input)
     loss = criterion(output, target)

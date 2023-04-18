@@ -17,7 +17,8 @@
 
 import cxxfilt, struct, binascii
 
-#Helper functions
+
+# Helper functions
 
 
 def demangle(name):
@@ -37,11 +38,11 @@ def getShortName(name):
 	Returns a shorter kernel name
 	"""
     sname = name.split("<")[0] \
-       .replace("void ", "") \
-       .replace("at::","") \
-       .replace("cuda::", "") \
-       .replace("native::","") \
-       .replace("(anonymous namespace)::", "")
+        .replace("void ", "") \
+        .replace("at::", "") \
+        .replace("cuda::", "") \
+        .replace("native::", "") \
+        .replace("(anonymous namespace)::", "")
     sname = sname.split("(")[0]
     return sname
 
@@ -58,16 +59,16 @@ class Kernel(object):
         self.kNameId = None
         self.kShortName = None
         self.kLongName = None
-        self.kStartTime = None  #GPU start time
-        self.kEndTime = None  #GPU end time
+        self.kStartTime = None  # GPU start time
+        self.kEndTime = None  # GPU end time
         self.kDuration = None
         self.device = None
         self.stream = None
         self.grid = ()
         self.block = ()
         self.corrId = None
-        self.rStartTime = None  #CPU start time
-        self.rEndTime = None  #CPU end time
+        self.rStartTime = None  # CPU start time
+        self.rEndTime = None  # CPU end time
         self.rDuration = None
         self.tid = None
         self.pid = None
@@ -90,6 +91,12 @@ class Kernel(object):
         self.mod = []
         self.op = []
 
+        self.staticSharedMemory = None
+        self.dynamicSharedMemory = None
+        self.localMemoryPerThread = None
+        self.localMemoryTotal = None
+        self.sharedMemoryExecuted = None
+
     def setKernelInfo(self, info):
         self.kNameId = info['kNameId']
         self.corrId = int(info['correlationId'])
@@ -107,6 +114,18 @@ class Kernel(object):
         self.timeOffset = Kernel.profStart
         self.setKernelName(info['name'])
         self.setRunTimeInfo(info)
+
+        # memory
+        if 'staticSharedMemory' in info.keys():
+            self.staticSharedMemory = int(info['staticSharedMemory'])
+        if 'dynamicSharedMemory' in info.keys():
+            self.dynamicSharedMemory = int(info['dynamicSharedMemory'])
+        if 'localMemoryPerThread' in info.keys():
+            self.localMemoryPerThread = int(info['localMemoryPerThread'])
+        if 'localMemoryTotal' in info.keys():
+            self.localMemoryTotal = int(info['localMemoryTotal'])
+        if 'sharedMemoryExecuted' in info.keys():
+            self.sharedMemoryExecuted = int(info['sharedMemoryExecuted'])
 
     def setKernelName(self, name):
         cadena = demangle(name)
@@ -133,8 +152,8 @@ class Kernel(object):
 		It is a heuristic and not a foolproof method.
 		"""
         if any("Backward, seq = " in x for x in self.seqMarkers) or \
-         any("backward, seq = " in x for x in self.seqMarkers) or \
-         any("Backward0, seq = " in x for x in self.seqMarkers):
+                any("backward, seq = " in x for x in self.seqMarkers) or \
+                any("Backward0, seq = " in x for x in self.seqMarkers):
             self.dir = "bprop"
         else:
             self.dir = "fprop"
@@ -151,16 +170,16 @@ class Kernel(object):
 		"""
 
         def sanitize(name):
-            name = name.replace("torch","") \
-               .replace("autograd","") \
-               .replace("_backward","") \
-               .replace("::","") \
-               .replace("jit","") \
-               .replace("(anonymous namespace)","")
+            name = name.replace("torch", "") \
+                .replace("autograd", "") \
+                .replace("_backward", "") \
+                .replace("::", "") \
+                .replace("jit", "") \
+                .replace("(anonymous namespace)", "")
             head, sep, tail = name.partition("Backward")
             return head
 
-        #Check pyprof markers
+        # Check pyprof markers
         for m in self.pyprofMarkers:
             assert ("mod" in m) and ("op" in m) and ("args" in m)
             t = eval(m)
@@ -170,7 +189,7 @@ class Kernel(object):
         if len(self.op):
             return
 
-        #Check bprop kernel markers
+        # Check bprop kernel markers
         for m in self.seqMarkers:
             if ("backward, seq = " in m) or ("Backward, seq = " in m):
                 op = m.split(",")[0]
@@ -181,7 +200,7 @@ class Kernel(object):
         if len(self.op):
             return
 
-        #Check markers with "seq = "
+        # Check markers with "seq = "
         for m in self.seqMarkers:
             if ", seq = " in m:
                 op = m.split(",")[0]
@@ -191,7 +210,7 @@ class Kernel(object):
         if len(self.op):
             return
 
-        #If nothing else
+        # If nothing else
         if len(self.otherMarkers):
             self.op.append(self.otherMarkers[0])
         self.mod.append('na')
@@ -205,7 +224,7 @@ class Kernel(object):
         a.kShortName = self.kShortName
         a.kDuration = self.kDuration
         a.rDuration = self.rDuration
-        #a.layerMarkers = self.layerMarkers
+        # a.layerMarkers = self.layerMarkers
         a.layer = self.layer
         a.trace = self.traceMarkers
         a.reprMarkers = self.reprMarkers
@@ -227,9 +246,16 @@ class Kernel(object):
         a.block = self.block
         a.kLongName = self.kLongName
 
-        a.kStartTime = self.kStartTime # GPU start time
-        a.kEndTime = self.kEndTime # GPU end time
+        a.kStartTime = self.kStartTime  # GPU start time
+        a.kEndTime = self.kEndTime  # GPU end time
         a.rStartTime = self.rStartTime
         a.rEndTime = self.rEndTime
+
+        # memory
+        a.staticSharedMemory = self.staticSharedMemory
+        a.dynamicSharedMemory = self.dynamicSharedMemory
+        a.localMemoryPerThread = self.localMemoryPerThread
+        a.localMemoryTotal = self.localMemoryTotal
+        a.sharedMemoryExecuted = self.sharedMemoryExecuted
 
         print(a.__dict__)

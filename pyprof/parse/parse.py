@@ -32,6 +32,7 @@ from .nsight import Nsight
 def parseArgs():
     parser = argparse.ArgumentParser(prog=sys.argv[0], description="Parse SQLite3 DB from NVprof or Nsight.")
     parser.add_argument("file", type=str, default=None, help="SQLite3 database.")
+    parser.add_argument("memory", type=bool, default=False, help="Parse Memory Information")
 
     args = parser.parse_args()
 
@@ -55,7 +56,7 @@ def main():
     if dbIsNvvp(db):
         nvvp = NVVP(db)
     else:
-        nvvp = Nsight(db)
+        nvvp = Nsight(db, args.memory)
 
     kInfo = nvvp.getKernelInfo()
     if len(kInfo) == 0:
