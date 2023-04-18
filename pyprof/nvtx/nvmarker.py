@@ -103,6 +103,51 @@ def modMarker(mod, fn_name, args):
     d['strRepr'] = args[0].extra_repr()
     return str(d)
 
+def wrap_func(mod, fn_name):
+    # Get a pointer to the original function
+    func = getattr(mod, fn_name)
+
+    # Check if the mod has a string representation
+    # and is not a Script or Traced module (used by JIT)
+    # yapf: disable
+    s = hasattr(mod, "extra_repr") and (type(mod) is not torch.jit.ScriptModule
+                                       ) and (type(mod) is not torch.jit.TopLevelTracedModule)
+    # yapf: enable
+
+    def wrapper_func(*args, **kwargs):
+
+        # Extract the stacktrace
+        stack = traceback.extract_stack()
+
+        # Push trace marker
+        nvtx.range_push(traceMarker(stack))
+
+        # Push module marker
+        if s:
+            m = modMarker(mod, fn_name, args)
+            nvtx.range_push(m)
+
+        # Create and push argument marker
+        cadena = argMarker(mod, fn_name, args, kwargs)
+        nvtx.range_push(cadena)
+
+        # Call the original function
+        result = func(*args, **kwargs)
+
+        # Pop argumet marker
+        nvtx.range_pop()
+
+        # Pop module marker
+        if s:
+            nvtx.range_pop()
+
+        # Pop trace marker
+        nvtx.range_pop()
+
+        return result
+
+    setattr(mod, "wrap_"+fn_name, wrapper_func)
+
 
 def add_wrapper(mod, fn_name):
 
@@ -403,6 +448,6 @@ def init(*args, **kwargs):
     patch_apex()
     # patch_dataloader()
     patch_torch_classes()
+    # 找到所有的module,修改其中的forward函数，即对forward进行封装，在其前后设置nvmarker，用于监测
     patch_torch_nn_forward_functions()
-
     print("Done with NVTX monkey patching")

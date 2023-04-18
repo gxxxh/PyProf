@@ -75,10 +75,10 @@ flops:    Floating point ops (FMA = 2 FLOPs)
 bytes:    Number of bytes in and out of DRAM
 e.g. -c idx,kernel,sil'''
     )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("--csv", action="store_true", default=False, help="Print a CSV output.")
-    group.add_argument("-w", type=int, default=0, help="Width of columnated output.")
+    parser.add_argument("--output", type=str, default="prof.csv", help="Output file.")
+    # group = parser.add_mutually_exclusive_group()
+    # group.add_argument("--csv", action="store_true", default=false, help="print a csv output.")
+    # group.add_argument("-w", type=int, default=0, help="width of columnated output.")
 
     args = parser.parse_args()
     if args.file is None:

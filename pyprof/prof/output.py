@@ -15,15 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import errno, os, sys
+import errno
+import os
+import sys
 
 import pandas as pd
 
 
 class Output():
     """
-	This class handles printing of a columed output and a CSV.
-	"""
+        This class handles printing of a columed output and a CSV.
+        """
 
     # The table below is organized as
     # user_option: [output_header, attribute_in_Data_class, type, min_width_in_columed_output]
@@ -47,7 +49,12 @@ class Output():
         "grid": ["Grid", "grid", str, 12],
         "block": ["Block", "block", str, 12],
         "flops": ["FLOPs", "flops", int, 12],
-        "bytes": ["Bytes", "bytes", int, 12]
+        "bytes": ["Bytes", "bytes", int, 12],
+        "staticSharedMemory": ["staticSharedMemory", "staticSharedMemory", int, 12],
+        "dynamicSharedMemory": ["dynamicSharedMemory", "dynamicSharedMemory", int, 12],
+        "localMemoryTotal": ["localMemoryTotal", "localMemoryTotal", int, 12],
+        "localMemoryPerThread": ["localMemoryPerThread", "localMemoryPerThread", int, 12],
+        "sharedMemoryExecuted": ["sharedMemoryExecuted", "sharedMemoryExecuted", int, 12],
     }
 
     def __init__(self, args):
@@ -77,12 +84,12 @@ class Output():
             val = getattr(a, attr)
 
             if col == "layer":
-                assert (type(val) == list)
+                assert (isinstance(val, list))
                 val = ":".join(val)
                 val = "-" if val == "" else val
 
             if col == "trace":
-                assert (type(val) == list)
+                assert (isinstance(val, list))
                 # if len(val):
                 #     val = val[-1]
                 #     val = val.split("/")[-1]
@@ -91,13 +98,14 @@ class Output():
                 val = "-" if val == "" else val
 
             if col in ["seq", "altseq"]:
-                assert (type(val) == list)
+                assert (isinstance(val, list))
                 val = ",".join(map(str, val))
                 val = "-" if val == "" else val
 
             d[col] = [val]
 
-        self.df = pd.concat([self.df, pd.DataFrame.from_dict(d)],ignore_index=True)
+        self.df = pd.concat(
+            [self.df, pd.DataFrame.from_dict(d)], ignore_index=True)
 
     def save(self):
         self.df.to_csv(self.save_path, index=False)

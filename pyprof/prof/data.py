@@ -57,6 +57,13 @@ class Data(object):
         self.flops = 0
         self.bytes = 0
 
+        # memory
+        self.staticSharedMemory = kernel["staticSharedMemory"]
+        self.dynamicSharedMemory = kernel["dynamicSharedMemory"]
+        self.localMemoryTotal = kernel["localMemoryTotal"]
+        self.localMemoryPerThread = kernel["localMemoryPerThread"]
+        self.sharedMemoryExecuted = kernel["sharedMemoryExecuted"]
+
     def setParams(self, params):
         # TODO: Remove the else block after refactoring.
         if type(params) == str:

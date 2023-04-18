@@ -204,7 +204,6 @@ def main():
     cmdArgs = parseArgs()
 
     output = Output(cmdArgs)
-    output.header()
 
     idx = -1
     #Read in all the kernel info
@@ -281,8 +280,9 @@ def main():
         d.mod = mod
         d.op = op
 
+        # memory
         output.add(d)
-
+    output.save()
 
 kernels = []
 if __name__ == '__main__':
