@@ -35,7 +35,7 @@ With additional user annotation (advanced mode):
 
 ```bash
 # clone
-$ git clone https://github.com/adityaiitb/PyProf.git
+$ git clone https://github.com/gxxxh/PyProf.git
 
 # install
 $ pip3 install . --user
@@ -89,7 +89,6 @@ with torch.autograd.profiler.emit_nvtx():
 2. **Profile using Nsight Systems or NVProf to obtain a SQLite3 database.**
 
 > NVProf is currently being phased out, and it is recommended to use Nsight Systems.
-
 #### Profile with Nsight Systems
 
 Generate a SQLite database as follows.
@@ -101,6 +100,7 @@ $ nsys profile
     -c cudaProfilerApi       # Optional argument required for profiler start/stop
     --stop-on-range-end true # Optional argument required for profiler start/stop
     --export sqlite          # Export net.sql (similar to NVProf) 
+    -cuda-memory-usage true # profile memroy
     python net.py
 ```
 
@@ -147,7 +147,7 @@ duration, parameters etc. This file can be used as input to other custom
 scripts as well. Nsys will create a file called net.sqlite.
 
 ```bash
-$ python -m pyprof.parse net.sqlite > net.dict
+$ python -m pyprof.parse --memory true --file net.sqlite >$ResultSavePath/net.dict
 ```
 
 4. **Run the prof script.**
@@ -188,30 +188,7 @@ work in progress or the tool was unable to extract that information.
 Here are a few examples of how to use `prof`.
 
 ```bash
-# Print usage and help. Lists all available output columns.
-$ python -m pyprof.prof -h
-
-# Columnated output of width 150 with default columns.
-# The default options are "idx,dir,sub,mod,op,kernel,params,sil".
-$ python -m pyprof.prof -w 150 net.dict
-
-# CSV output.
-$ python -m pyprof.prof --csv net.dict
-
-# Space seperated output.
-$ python -m pyprof.prof net.dict
-
-# Columnated output of width 130 with columns index,direction,kernel name,parameters,silicon time.
-$ python -m pyprof.prof -w 130 -c idx,dir,kernel,params,sil net.dict
-
-# CSV output with columns index,direction,kernel name,parameters,silicon time.
-$ python -m pyprof.prof --csv -c idx,dir,kernel,params,sil net.dict
-
-# Space separated output with columns index,direction,kernel name,parameters,silicon time.
-$ python -m pyprof.prof -c idx,dir,kernel,params,sil net.dict
-
-# Input redirection.
-$ python -m pyprof.prof < net.dict
+$ python -m pyprof.prof net.dict --output net.csv
 ```
 
 ## Advanced Usage
@@ -247,3 +224,8 @@ If you use PyProf and would like to cite us, we suggest the following.
 
 Contributions are more than welcome. To contribute make a pull request
 and follow the guidelines [here](./docs/CONTRIBUTING.md).
+
+## Update
+1. As cuda differs for different version, I update the parse and prof module, which can be used on cuda 11.7 and Nsight(2022.1.3.3-1c7b5f7)
+2. I also update the usage for better use.
+3. Add memory support for nsight

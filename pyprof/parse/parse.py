@@ -31,8 +31,8 @@ from .nsight import Nsight
 
 def parseArgs():
     parser = argparse.ArgumentParser(prog=sys.argv[0], description="Parse SQLite3 DB from NVprof or Nsight.")
-    parser.add_argument("file", type=str, default=None, help="SQLite3 database.")
-    parser.add_argument("memory", type=bool, default=False, help="Parse Memory Information")
+    parser.add_argument("--file", type=str, default=None, help="SQLite3 database.")
+    parser.add_argument("--memory", type=bool, default=False, help="Parse Memory Information")
 
     args = parser.parse_args()
 
