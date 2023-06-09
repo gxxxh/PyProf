@@ -37,7 +37,7 @@ from .embedding import Embedding
 from .reduction import *
 from .dropout import Dropout
 from .softmax import *
-#from pooling import * # work in progress
+# from pooling import * # work in progress
 from .linear import Linear
 from .optim import Adam
 from .misc import *
@@ -53,8 +53,8 @@ from .memory import OneZero, Fill, Full
 
 
 def findFpropKernel(seq):
-    #Find the last fprop kernel with the same seqId
-    #First look at seqId and then at altSeqId
+    # Find the last fprop kernel with the same seqId
+    # First look at seqId and then at altSeqId
     for idx in reversed(range(len(kernels))):
         k = kernels[idx]
         if (seq in k['seqId']) and (k['dir'] == "fprop"):
@@ -66,8 +66,8 @@ def findFpropKernel(seq):
             return idx
 
     return -1
-    #print("Error: seqId {} not found.".format(seq), file=sys.stderr)
-    #assert False
+    # print("Error: seqId {} not found.".format(seq), file=sys.stderr)
+    # assert False
 
 
 def foo(mod, op, d):
@@ -79,8 +79,8 @@ def foo(mod, op, d):
         xx = RNNCell(d)
 
     elif op[0] in [
-            "conv1d",
-            "conv2d",
+        "conv1d",
+        "conv2d",
     ]:
         xx = Conv(d)
 
@@ -96,7 +96,7 @@ def foo(mod, op, d):
     elif op[0] == "embedding":
         xx = Embedding(d)
 
-    #reduction
+    # reduction
     elif op[0] == "sum":
         xx = Sum(d)
 
@@ -109,7 +109,7 @@ def foo(mod, op, d):
     elif op[0] == "dropout":
         xx = Dropout(d)
 
-    #Index, Slice, Join, Mutate
+    # Index, Slice, Join, Mutate
     elif (op[0] == "cat"):
         xx = Cat(d)
 
@@ -131,7 +131,7 @@ def foo(mod, op, d):
     elif (op[0] == "masked_select"):
         xx = MaskedSelect(d)
 
-    #blas
+    # blas
     elif op[0] in ["addmm", "addmm_"]:
         xx = Addmm(d)
 
@@ -141,30 +141,30 @@ def foo(mod, op, d):
     elif op[0] == "bmm":
         xx = Bmm(d)
 
-    #softmax
+    # softmax
     elif op[0] == "softmax":
         xx = Softmax(d)
 
     elif op[0] == "log_softmax":
         xx = LogSoftmax(d)
 
-    #loss
+    # loss
     elif op[0] == "mse_loss":
         xx = MSELoss(d)
 
-    #optimizers
+    # optimizers
     elif op[0] == "adam":
         xx = Adam(d)
 
-    #normalization
+    # normalization
     elif op[0] == "batch_norm":
         xx = BatchNorm(d)
 
-    #random
+    # random
     elif op[0] == "randperm":
         xx = RandPerm(d)
 
-    #memory
+    # memory
     elif op[0] in OneZero.ops:
         xx = OneZero(d)
 
@@ -174,7 +174,7 @@ def foo(mod, op, d):
     elif op[0] == "full":
         xx = Full(d)
 
-    #misc
+    # misc
     elif op[0] == "copy_":
         xx = Copy(d)
 
@@ -200,13 +200,13 @@ def foo(mod, op, d):
 
 
 def main():
-    #Read cmd line arguments
+    # Read cmd line arguments
     cmdArgs = parseArgs()
 
     output = Output(cmdArgs)
 
     idx = -1
-    #Read in all the kernel info
+    # Read in all the kernel info
     lines = cmdArgs.file.readlines()
     for line in lines:
         idx += 1
@@ -224,6 +224,9 @@ def main():
         params = {"na": "na"}
         tc = "na"
         bytes = 0
+        # # handle seq
+        # if len(d.altSeqId) > 0 and len(d.seqId) > 0 and int(d.altSeqId) < int(d.seqId):
+        #     d.seqId = d.altSeqId
 
         if (d.dir == "bprop"):
             d.seqMarker = k['seqMarker']
@@ -232,10 +235,10 @@ def main():
                 pass
             seq = k['seqId'][:1]
             assert (len(seq) == 1), seq
-            #assert (seq[0] != 0)
+            # assert (seq[0] != 0)
             assert (len(d.seqMarker) > 0)
-            #If there is no useful marker associated, use the
-            #sequence number to find the kernel from fprop
+            # If there is no useful marker associated, use the
+            # sequence number to find the kernel from fprop
             if len(d.argMarker) == 0:
                 index = findFpropKernel(seq[0])
                 if index >= 0:
@@ -249,7 +252,6 @@ def main():
 
         # Check if marker has our annotations
         if len(d.argMarker) and Utility.hasNVTX(d.argMarker[0]):
-
             xx = foo(mod, op, d)
 
             bytes = xx.bytes()
@@ -283,6 +285,7 @@ def main():
         # memory
         output.add(d)
     output.save()
+
 
 kernels = []
 if __name__ == '__main__':

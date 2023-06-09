@@ -78,36 +78,36 @@ def main():
         info = kInfo[i]
         k = Kernel()
 
-        #Calculate/encode object ID
+        # Calculate/encode object ID
         nvvp.encode_object_id(info)
 
-        #Set kernel info
+        # Set kernel info
         k.setKernelInfo(info)
 
-        #Get and set marker and seqid info
+        # Get and set marker and seqid info
         info = nvvp.getMarkerInfo(k.objId, k.rStartTime, k.rEndTime)
         k.setMarkerInfo(info)
 
-        #If the seqId contains both 0 and non zero integers, remove 0.
+        # If the seqId contains both 0 and non zero integers, remove 0.
         if any(seq != 0 for seq in k.seqId) and (0 in k.seqId):
             k.seqId.remove(0)
 
-        #Set direction (it uses seq id)
+        # Set direction (it uses seq id)
         k.setDirection()
 
-        #Set op
+        # Set op
         k.setOp()
 
-        #The following code is based on heuristics.
-        #TODO: Refactor.
-        #Assign subSeqId, adjust seqId and altSeqId
-        #seqId can be 0.
-        #A kernel can have multiple seqIds both in fprop and bprop.
-        #In bprop, seqIds might not decrease monotonically. I have observed a few blips.
+        # The following code is based on heuristics.
+        # TODO: Refactor.
+        # Assign subSeqId, adjust seqId and altSeqId
+        # seqId can be 0.
+        # A kernel can have multiple seqIds both in fprop and bprop.
+        # In bprop, seqIds might not decrease monotonically. I have observed a few blips.
         if len(k.seqId):
             assert (k.dir in ["fprop", "bprop"])
             if (k.dir == "fprop"):
-                #Check if there is a sequence id larger than the previous
+                # Check if there is a sequence id larger than the previous
                 inc = (k.seqId[-1] > prevSeqId)
                 if inc:
                     currSeqId = [x for x in k.seqId if x > prevSeqId][0]
@@ -116,25 +116,25 @@ def main():
             else:
                 currSeqId = k.seqId[0]
 
-            #if ((currSeqId == prevSeqId) and (k.op == prevOp)):
+            # if ((currSeqId == prevSeqId) and (k.op == prevOp)):
             if ((currSeqId == prevSeqId) and (k.op == prevOp)) or ((k.op[0] == "forward") and (k.op == prevOp) and
                                                                    (k.mod[0] in ["LSTMCell", "GRUCell", "RNNCell"])):
-                #The second condition is to trap cases when pytorch does not use cudnn for a LSTMCell.
+                # The second condition is to trap cases when pytorch does not use cudnn for a LSTMCell.
                 k.subSeqId = prevSubSeqId + 1
 
             prevSeqId = currSeqId
             prevSubSeqId = k.subSeqId
             prevOp = k.op
 
-            #Keep currSeqId in k.seqId, move everything else to k.altSeqId
+            # Keep currSeqId in k.seqId, move everything else to k.altSeqId
+            new_altSeqId = k.altSeqId
+            if currSeqId in k.altSeqId:
+                k.altSeqId.remove(currSeqId)
             for s in k.seqId:
                 if s != currSeqId:
-                    k.seqId.remove(s)
-                    k.altSeqId.append(s)
-
-            for s in k.altSeqId:
-                if s == currSeqId:
-                    k.altSeqId.remove(s)
+                    new_altSeqId.append(s)
+            k.altSeqId = new_altSeqId
+            k.seqId = [currSeqId]
 
             k.altSeqId = list(set(k.altSeqId))
             if (len(k.altSeqId)):

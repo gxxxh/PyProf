@@ -24,7 +24,7 @@ class Data(object):
 	"""
 
     def __init__(self, kernel):
-        #Available from NVprof
+        # Available from NVprof
         self.tid = kernel['tid']
         self.device = kernel['device']
         self.stream = kernel['stream']
@@ -32,11 +32,11 @@ class Data(object):
         self.block = str(kernel['block']).replace(" ", "").replace("(", "").replace(")", "")
         self.name = kernel['kShortName'].replace(" ", "_")
         self.lName = kernel['kLongName']
-        self.sil = kernel['kDuration']  #units ns
+        self.sil = kernel['kDuration']  # units ns
 
         self.index = None
 
-        #Markers
+        # Markers
         self.argMarker = kernel['marker']
         self.modMarker = kernel['reprMarkers']
         self.seqMarker = kernel['seqMarker']
@@ -63,21 +63,25 @@ class Data(object):
         self.localMemoryTotal = kernel["localMemoryTotal"]
         self.localMemoryPerThread = kernel["localMemoryPerThread"]
         self.sharedMemoryExecuted = kernel["sharedMemoryExecuted"]
+        self.rStartTime = kernel['rStartTime']
+        self.rEndTime = kernel['rEndTime']
+        self.kStartTime = kernel['kStartTime']
+        self.kEndTime = kernel['kEndTime']
 
     def setParams(self, params):
         # TODO: Remove the else block after refactoring.
         if type(params) == str:
-          self.params = params
+            self.params = params
         else:
-          #Remove space from params
-          qaz = ""
-          for key, value in params.items():
-              if "type" not in key:
-                  qaz += "{}={},".format(key, value)
-              else:
-                  if type(value) is str:
-                      qaz += "{},".format(Utility.typeToString(value))
-                  else:
-                      qaz += "{}".format(value)
-          
-          self.params = qaz.replace(" ", "")
+            # Remove space from params
+            qaz = ""
+            for key, value in params.items():
+                if "type" not in key:
+                    qaz += "{}={},".format(key, value)
+                else:
+                    if type(value) is str:
+                        qaz += "{},".format(Utility.typeToString(value))
+                    else:
+                        qaz += "{}".format(value)
+
+            self.params = qaz.replace(" ", "")

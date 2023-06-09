@@ -43,16 +43,17 @@ import json
 import importlib
 
 
+
 def isfunc(mod, f):
     assert hasattr(mod, f)
     attr = getattr(mod, f)
 
-    #Ignore functions like _add
+    # Ignore functions like _add
     if (len(f) >= 2):
         if f[0] == "_" and f[1] != "_":
             return False
 
-    #Ignore functions from this list
+    # Ignore functions from this list
     ignore = [
         '__all__', '__array__', '__array_priority__', '__array_wrap__', '__bool__', '__builtins__', '__cached__',
         '__class__', '__deepcopy__', '__delattr__', '__delitem__', '__dict__', '__dir__', '__doc__', '__file__',
@@ -62,7 +63,7 @@ def isfunc(mod, f):
         '__setstate__', '__sizeof__', '__spec__', '__str__', '__subclasshook__', '__version__', '__weakref__'
     ]
 
-    #Add functions to this list if they cause recursion
+    # Add functions to this list if they cause recursion
     ignore += ['size', 'tolist', 'dim', 'is_storage', 'item', 'data_ptr']
 
     # Add functions to this list if they are called often, are generally extremely
@@ -103,54 +104,8 @@ def modMarker(mod, fn_name, args):
     d['strRepr'] = args[0].extra_repr()
     return str(d)
 
-def wrap_func(mod, fn_name):
-    # Get a pointer to the original function
-    func = getattr(mod, fn_name)
-
-    # Check if the mod has a string representation
-    # and is not a Script or Traced module (used by JIT)
-    # yapf: disable
-    s = hasattr(mod, "extra_repr") and (type(mod) is not torch.jit.ScriptModule
-                                       ) and (type(mod) is not torch.jit.TopLevelTracedModule)
-    # yapf: enable
-
-    def wrapper_func(*args, **kwargs):
-
-        # Extract the stacktrace
-        stack = traceback.extract_stack()
-
-        # Push trace marker
-        nvtx.range_push(traceMarker(stack))
-
-        # Push module marker
-        if s:
-            m = modMarker(mod, fn_name, args)
-            nvtx.range_push(m)
-
-        # Create and push argument marker
-        cadena = argMarker(mod, fn_name, args, kwargs)
-        nvtx.range_push(cadena)
-
-        # Call the original function
-        result = func(*args, **kwargs)
-
-        # Pop argumet marker
-        nvtx.range_pop()
-
-        # Pop module marker
-        if s:
-            nvtx.range_pop()
-
-        # Pop trace marker
-        nvtx.range_pop()
-
-        return result
-
-    setattr(mod, "wrap_"+fn_name, wrapper_func)
-
 
 def add_wrapper(mod, fn_name):
-
     # Get a pointer to the original function
     func = getattr(mod, fn_name)
 
@@ -158,9 +113,10 @@ def add_wrapper(mod, fn_name):
     # and is not a Script or Traced module (used by JIT)
     # yapf: disable
     s = hasattr(mod, "extra_repr") and (type(mod) is not torch.jit.ScriptModule
-                                       ) and (type(mod) is not torch.jit.TopLevelTracedModule)
-    # yapf: enable
+                                        ) and (type(mod) is not torch.jit.TopLevelTracedModule)
 
+    # yapf: enable
+    # print(f'wrap {mod.__name__}:{fn_name}')
     def wrapper_func(*args, **kwargs):
 
         # Extract the stacktrace
@@ -178,8 +134,15 @@ def add_wrapper(mod, fn_name):
         cadena = argMarker(mod, fn_name, args, kwargs)
         nvtx.range_push(cadena)
 
+        # # Create and push layer marker
+        # info = 'layer:' +  mod.__name__ + ',' + fn_name
+        # nvtx.range_push(info)
+
         # Call the original function
         result = func(*args, **kwargs)
+
+        # # pop layer marker
+        # nvtx.range_pop()
 
         # Pop argumet marker
         nvtx.range_pop()
@@ -197,7 +160,7 @@ def add_wrapper(mod, fn_name):
 
 
 def argMarker(mod, op, args, kwargs):
-    #For this function args is a tuple and kwargs is a dict
+    # For this function args is a tuple and kwargs is a dict
 
     def tensor(arg, name=""):
         a = {}
@@ -234,7 +197,7 @@ def argMarker(mod, op, args, kwargs):
         a = {}
         a['name'] = name
         a['type'] = type(arg).__name__
-        #handle the case when the argument is +/- inf or nan
+        # handle the case when the argument is +/- inf or nan
         if arg == float('inf'):
             a['value'] = "inf"
         elif arg == float('-inf'):
@@ -252,7 +215,7 @@ def argMarker(mod, op, args, kwargs):
         return isinstance(arg, list) or isinstance(arg, tuple)
 
     def foo(args, name):
-        #args should be an iterable sequence e.g. list or tuple
+        # args should be an iterable sequence e.g. list or tuple
         for arg in args:
             if isinstance(arg, torch.Tensor):
                 if arg.dim() == 0:
@@ -264,7 +227,7 @@ def argMarker(mod, op, args, kwargs):
             elif (isscalar(arg)):
                 scalar(arg, name)
             elif issequence(arg):
-                if (len(arg) == 0) or isscalar(arg[0]):  #An empty sequence or a sequence of scalars
+                if (len(arg) == 0) or isscalar(arg[0]):  # An empty sequence or a sequence of scalars
                     seq(arg, name)
                 else:  # A sequence of tensors or numpy arrays
                     foo(arg, name)
@@ -283,7 +246,7 @@ def argMarker(mod, op, args, kwargs):
 
     foo(args, "")
     for k, v in kwargs.items():
-        foo((v, ), k)
+        foo((v,), k)
 
     return str(cadena)
 
@@ -313,7 +276,6 @@ def patch_dataloader():
     old_iter = mod.DataLoader.__iter__
 
     def new_iter(self, *args, **kwargs):
-
         # Push trace marker
         nvtx.range_push(traceMarker("Dataloader"))
 
@@ -322,7 +284,6 @@ def patch_dataloader():
         nvtx.range_push(cadena)
 
         for x in old_iter(self, *args, **kwargs):
-
             # Pop tracemarker
             nvtx.range_pop()
 
@@ -396,7 +357,7 @@ def patch_apex_pyt():
         patch_apex_module("apex.multi_tensor_apply")
         patch_apex_module("apex.optimizers")
         patch_apex_module("apex.parallel")
-        #patch_apex_module("apex.RNN")  # Confirmed to be dead code. Do not patch
+        # patch_apex_module("apex.RNN")  # Confirmed to be dead code. Do not patch
 
 
 def is_same_module_or_submodule(orig, incoming):

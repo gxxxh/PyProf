@@ -23,7 +23,7 @@ class NVVP(object):
     """
 	This class gets kernel information from the SQL (nvvp) database.
 	"""
-
+    totalT = "ANALYSIS_DETALIS" # 获取总执行时间
     driverT = "CUPTI_ACTIVITY_KIND_DRIVER"
     runtimeT = "CUPTI_ACTIVITY_KIND_RUNTIME"
     kernelT = "CUPTI_ACTIVITY_KIND_CONCURRENT_KERNEL"
